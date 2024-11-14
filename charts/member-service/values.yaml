@@ -1,0 +1,96 @@
+namespace: pplog
+
+deployment:
+  name: pplog-member-service
+  replicas: 2
+
+image:
+  repository: kim6562166086/pplog-member-service
+  tag: latest
+
+container:
+  port: 9083
+
+service:
+  name: pplog-member-service
+  port: 9083
+  nodePort: 30003
+
+configMap:
+  name: member-service-config
+
+application:
+  yaml: |
+    server:
+      port: 9083
+
+    spring:
+      application:
+        name: member-service
+      cloud:
+        kubernetes:
+          discovery:
+            all-namespaces: true
+      data:
+        redis:
+          host: localhost
+          port: 6379
+      datasource:
+        url: jdbc:mysql://172.16.210.108:3306/prototype
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        username: minhyung
+        password: Myaong00!
+      jpa:
+        show-sql: true
+        hibernate:
+          ddl-auto: update
+        properties:
+          hibernate:
+            format_sql: true
+      security:
+        oauth2:
+          client:
+            registration:
+              kakao:
+                client-name: kakao
+                client-id: 0ae8c24b64dc00267bd12055e15594e8
+                client-secret: 0ebb5b3b4cd63a88e7a86d0b7bf19f06
+                client-authentication-method: client_secret_post
+                redirect-uri: <http://localhost:9083/login/oauth2/code/kakao>
+                authorization-grant-type: authorization_code
+                scope:
+                  - profile_nickname
+                  - account_email
+              google:
+                client-name: google
+                client-id: 395368250733-nrpfnq9o3vird9ligjj5lu1ccj6h75gk.apps.googleusercontent.com
+                client-secret: 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
+                client-authentication-method: client_secret_post
+                redirect-uri: http://localhost:9083/login/oauth2/code/google
+                authorization-grant-type: authorization_code
+                scope:
+                  - email
+                  - profile
+            provider:
+              kakao:
+                authorization-uri: https://kauth.kakao.com/oauth/authorize
+                token-uri: https://kauth.kakao.com/oauth/token
+                user-info-uri: https://kapi.kakao.com/v2/user/me
+                user-name-attribute: id
+
+    jwt:
+      secret_key: myaongpplogmyaongpplogmyaongpplogmyaongpplog
+
+    eureka:
+      client:
+        register-with-eureka: false
+        fetch-registry: false
+        enabled: false
+
+    springdoc:
+      api-docs:
+        version: openapi_3_1
+        enabled: true
+        path: /members/v3/api-docs
+      default-consumes-media-type: application/json
+      default-produces-media-type: application/json
